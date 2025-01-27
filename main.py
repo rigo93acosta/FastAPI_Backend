@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from routers import users, products
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -7,6 +8,9 @@ app = FastAPI()
 
 app.include_router(users.user_router)
 app.include_router(products.router_product)
+app.mount("/static", 
+           StaticFiles(directory="static"), 
+           name="static")
 
 @app.get("/")
 async def root():
