@@ -26,7 +26,6 @@ users_list = [
         ]
 
 
-
 @app.get("/usersjson")
 async def usersjson():
     return [
@@ -42,6 +41,7 @@ async def usersjson():
          "url": "https://www.janesmith.com", "age": 40},
     ]
 
+
 @app.get("/users")
 async def users():
     return users_list
@@ -52,7 +52,7 @@ async def userByName(name: str):
     return searchUserByName(name)
 
 # Query
-@app.get("/username")
+@app.get("/username/")
 async def userByName(name: str):
     return searchUserByName(name)
 
@@ -62,7 +62,7 @@ async def userById(user_id: int):
     return searchUserById(user_id)
 
 # Query
-@app.get("/userquery/")
+@app.get("/user/")
 async def userQuery(user_id: int):
     return searchUserById(user_id)
     
@@ -75,7 +75,7 @@ async def createUser(user: User):
         users_list.append(user)
     return user 
 
-@app.delete("/delete/{user_id}")
+@app.delete("/user/{user_id}")
 async def deleteUser(user_id: int):
     user = searchUserById(user_id)
     if type(user) == User:
@@ -84,9 +84,9 @@ async def deleteUser(user_id: int):
     else:
         return {"message": "User not found"}
     
-@app.put("/update/{user_id}")
-async def updateUser(user_id: int, userNew: User):
-    user = searchUserById(user_id)
+@app.put("/user/")
+async def updateUser(userNew: User):
+    user = searchUserById(userNew.id)
     if type(user) == User:
         index = users_list.index(user)
         users_list.remove(user)
