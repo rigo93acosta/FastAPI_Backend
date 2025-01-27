@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-app = FastAPI()
+user_router = APIRouter()
 
 # Entidad User
 class User(BaseModel):
@@ -26,7 +26,7 @@ users_list = [
         ]
 
 
-@app.get("/usersjson")
+@user_router.get("/usersjson")
 async def usersjson():
     return [
         {"name": "Rigo", "surname": "Acosta", 
@@ -42,32 +42,32 @@ async def usersjson():
     ]
 
 
-@app.get("/users")
+@user_router.get("/users")
 async def users():
     return users_list
 
 # Path
-@app.get("/username/{name}")
+@user_router.get("/username/{name}")
 async def userByName(name: str):
     return searchUserByName(name)
 
 # Query
-@app.get("/username/")
+@user_router.get("/username/")
 async def userByName(name: str):
     return searchUserByName(name)
 
 # Path        
-@app.get("/user/{user_id}")
+@user_router.get("/user/{user_id}")
 async def userById(user_id: int):
     return searchUserById(user_id)
 
 # Query
-@app.get("/user/")
+@user_router.get("/user/")
 async def userQuery(user_id: int):
     return searchUserById(user_id)
     
 
-@app.post("/user/", response_model=User, status_code=201)
+@user_router.post("/user/", response_model=User, status_code=201)
 async def createUser(user: User):
     if type(searchUserById(user.id)) == User:
         raise HTTPException(status_code=204, 
@@ -76,7 +76,7 @@ async def createUser(user: User):
         users_list.append(user)
     return user 
 
-@app.delete("/user/{user_id}")
+@user_router.delete("/user/{user_id}")
 async def deleteUser(user_id: int):
     user = searchUserById(user_id)
     if type(user) == User:
@@ -86,7 +86,7 @@ async def deleteUser(user_id: int):
         raise HTTPException(status_code=204, 
                       detail="User not found")
     
-@app.put("/user/")
+@user_router.put("/user/")
 async def updateUser(userNew: User):
     user = searchUserById(userNew.id)
     if type(user) == User:

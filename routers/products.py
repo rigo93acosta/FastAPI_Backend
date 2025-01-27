@@ -1,8 +1,8 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 
-app = FastAPI()
+router_product = APIRouter()
 
-@app.get("/products")
+@router_product.get("/products")
 async def products():
     return ["Product 1", "Product 2", 
             "Product 3", "Product 4", 
