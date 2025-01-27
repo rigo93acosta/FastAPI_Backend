@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-user_router = APIRouter()
+user_router = APIRouter(tags=["users"],
+                         responses={404: {"description": "Not found"}})
 
 # Entidad User
 class User(BaseModel):
