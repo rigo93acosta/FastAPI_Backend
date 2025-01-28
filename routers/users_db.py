@@ -10,8 +10,6 @@ userDB = APIRouter(prefix="/userdb",
                     tags=["userdb"],
                     responses={status.HTTP_404_NOT_FOUND: {"description": "Not found"}})
 
-users_list = []
-
 
 @userDB.get("/", response_model=list[User])
 async def users():
@@ -45,35 +43,22 @@ async def createUser(user: User):
 
     return User(**new_user)
 
-@userDB.delete("/{user_id}")
-async def deleteUser(user_id: int):
-    user = searchUserByName(user_id)
-    if type(user) == User:
-        users_list.remove(user)
-        return {"message": "User deleted"}
-    else:
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, 
-                      detail="User not found")
+@userDB.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def deleteUser(user_id: str):
+
+    found = db_client.users.find_one_and_delete(
+        {"_id": ObjectId(user_id)}
+        )
     
-@userDB.put("/")
+    if not found:
+        return {"message": "User not found"} 
+
+
+@userDB.put("/", response_model=User)
 async def updateUser(userNew: User):
-    user = searchUserByName(userNew.id)
-    if type(user) == User:
-        index = users_list.index(user)
-        users_list.remove(user)
-        users_list.insert(index, userNew)
-        return {"message": "User updated"}
-    else:
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, 
-                      detail="User not found")
-
-## Functions
-def searchUserById(user_id: int):
-    ...
-
-def searchUserByName(name: str):
     ...
     
+
 def searchUser(field: str, key):
     try:
         user = db_client.users.find_one({field: key})
