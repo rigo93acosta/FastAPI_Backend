@@ -5,3 +5,6 @@ def user_scheme(user) -> dict:
         "username": user["username"],
         "email": user["email"]
     }
+
+def users_scheme_list(users) -> list:
+    return [user_scheme(user) for user in users]
