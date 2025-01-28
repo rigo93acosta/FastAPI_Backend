@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 import jwt
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import InvalidTokenError, PyJWTError
 from passlib.context import CryptContext
 
 from datetime import datetime, timedelta, timezone
@@ -71,10 +71,39 @@ async def login(form: OAuth2PasswordRequestForm = Depends()):
                                        algorithm=ALGORITHM), 
             "token_type": "bearer"}
 
+async def auth_user(token: str = Depends(oauth2)):
+    
+    exception = HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Invalid credentials", 
+            headers={"WWW-Authenticate": "Bearer"})
+    
+    try:
+        username = jwt.decode(token, key=SECRET_KEY, algorithms=[ALGORITHM]).get("sub")
+        if username is None:
+            raise exception
+
+    except PyJWTError:
+        raise exception
+    
+    return search_user(username)
+    
+
+async def current_user(user_token: User = Depends(auth_user)):
+    if user_token.disable:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+        detail="Inactive user")
+    return user_token
+
+@app.get("/users/me")
+async def read_users_me(user: User = Depends(current_user)):
+    return user
+
 def search_user_db(username: str):
     if username in users_db:
         return UserInDB(**users_db[username])
-    
+
 def search_user(username: str):  
     if username in users_db:
         return User(**users_db[username])
