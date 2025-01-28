@@ -33,9 +33,13 @@ users_db = {
     }
 }
 
-def search_user(username: str):  
+def search_user_db(username: str):
     if username in users_db:
         return UserInDB(**users_db[username])
+
+def search_user(username: str):  
+    if username in users_db:
+        return User(**users_db[username])
 
 async def current_user(token: str = Depends(oauth2)):
     user = search_user(token)
@@ -57,7 +61,7 @@ async def login(form: OAuth2PasswordRequestForm = Depends()):
     if not user_db:
         raise HTTPException(status_code=400, detail="Incorrect username")
     
-    user = search_user(form.username)
+    user = search_user_db(form.username)
     print(user)
     if not user.password == form.password:
         raise HTTPException(status_code=400, detail="Incorrect password")
