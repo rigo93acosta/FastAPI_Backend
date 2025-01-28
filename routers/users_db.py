@@ -2,9 +2,9 @@
 
 from fastapi import APIRouter, HTTPException, status
 from db.models.user import User
-from db.schemas.user import user_scheme
+from db.schemas.user import user_scheme, users_scheme_list
 from db.client import db_client
-
+from bson import ObjectId
 
 userDB = APIRouter(prefix="/userdb",
                     tags=["userdb"],
@@ -13,29 +13,27 @@ userDB = APIRouter(prefix="/userdb",
 users_list = []
 
 
-@userDB.get("/")
+@userDB.get("/", response_model=list[User])
 async def users():
-    return users_list
+    return users_scheme_list(db_client.users.find())
 
 # Path        
 @userDB.get("/{user_id}")
-async def userById(user_id: int):
-    return searchUserById(user_id)
+async def userById(user_id: str):
+    return searchUser("_id", ObjectId(user_id))
 
 # Query
 @userDB.get("/")
-async def userQuery(user_id: int):
-    return searchUserById(user_id)
+async def userQuery(user_id: str):
+    return searchUser("_id", ObjectId(user_id))
     
 
 @userDB.post("/", response_model=User, 
              status_code=status.HTTP_201_CREATED)
 async def createUser(user: User):
-    # if type(searchUserById(user.id)) == User:
-    #     raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, 
-    #                   detail="User already exists")
-    # else:
-    #     users_list.append(user)
+    if type(searchUser("email", user.email)) == User:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, 
+                      detail="User already exists")
 
     user_dict = dict(user)
     del user_dict["id"]
@@ -49,7 +47,7 @@ async def createUser(user: User):
 
 @userDB.delete("/{user_id}")
 async def deleteUser(user_id: int):
-    user = searchUserById(user_id)
+    user = searchUserByName(user_id)
     if type(user) == User:
         users_list.remove(user)
         return {"message": "User deleted"}
@@ -59,7 +57,7 @@ async def deleteUser(user_id: int):
     
 @userDB.put("/")
 async def updateUser(userNew: User):
-    user = searchUserById(userNew.id)
+    user = searchUserByName(userNew.id)
     if type(user) == User:
         index = users_list.index(user)
         users_list.remove(user)
@@ -71,16 +69,14 @@ async def updateUser(userNew: User):
 
 ## Functions
 def searchUserById(user_id: int):
-    user = filter(lambda user: user.id == user_id, users_list)
-    try:
-        return list(user)[0]
-    except:
-        return {"message": "User not found"}
+    ...
 
 def searchUserByName(name: str):
-    user = filter(lambda user: user.name == name, users_list)
+    ...
+    
+def searchUser(field: str, key):
     try:
-        return list(user)[0]
+        user = db_client.users.find_one({field: key})
+        return User(**user_scheme(user))
     except:
         return {"message": "User not found"}
-
