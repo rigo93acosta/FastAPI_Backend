@@ -6,3 +6,5 @@ routers/__pycache__/users.cpython-312.pyc
 static/images/images.jpg
 routers/__pycache__/products.cpython-312.pyc
 routers/__pycache__/users.cpython-312.pyc
+db/models/__pycache__/user.cpython-312.pyc
+db/__pycache__/client.cpython-312.pyc
