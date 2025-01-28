@@ -1,33 +1,16 @@
 ### Users DB API ###
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, status
+from db.models.user import User
+from db.schemas.user import user_scheme
+from db.client import db_client
+
 
 userDB = APIRouter(prefix="/userdb",
-                        tags=["usersdb"],
-                         responses={404: {"description": "Not found"}})
+                    tags=["userdb"],
+                    responses={status.HTTP_404_NOT_FOUND: {"description": "Not found"}})
 
-# Entidad User
-class User(BaseModel):
-    id: int
-    name: str
-    surname: str
-    url: str
-    age: int
-
-
-users_list = [
-        User(id=1, name="Rigo", surname="Acosta",
-                    url="https://rigo93acosta.github.io", age=27),
-        User(id=2, name="John", surname="Doe",
-                    url="https://www.johndoe.com", age=30),
-        User(id=3, name="Jane", surname="Doe",
-                    url="https://www.janedoe.com", age=25),
-        User(id=4, name="John", surname="Smith",
-                    url="https://www.johnsmith.com", age=35),
-        User(id=5, name="Jane", surname="Smith",
-                    url="https://www.janesmith.com", age=40)
-        ]
+users_list = []
 
 
 @userDB.get("/")
@@ -45,14 +28,24 @@ async def userQuery(user_id: int):
     return searchUserById(user_id)
     
 
-@userDB.post("/", response_model=User, status_code=201)
+@userDB.post("/", response_model=User, 
+             status_code=status.HTTP_201_CREATED)
 async def createUser(user: User):
-    if type(searchUserById(user.id)) == User:
-        raise HTTPException(status_code=204, 
-                      detail="User already exists")
-    else:
-        users_list.append(user)
-    return user 
+    # if type(searchUserById(user.id)) == User:
+    #     raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, 
+    #                   detail="User already exists")
+    # else:
+    #     users_list.append(user)
+
+    user_dict = dict(user)
+    del user_dict["id"]
+    id = db_client.users.insert_one(user_dict).inserted_id
+
+    new_user = user_scheme(
+        db_client.users.find_one({"_id": id})
+        )
+
+    return User(**new_user)
 
 @userDB.delete("/{user_id}")
 async def deleteUser(user_id: int):
@@ -61,7 +54,7 @@ async def deleteUser(user_id: int):
         users_list.remove(user)
         return {"message": "User deleted"}
     else:
-        raise HTTPException(status_code=204, 
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, 
                       detail="User not found")
     
 @userDB.put("/")
@@ -73,7 +66,7 @@ async def updateUser(userNew: User):
         users_list.insert(index, userNew)
         return {"message": "User updated"}
     else:
-        raise HTTPException(status_code=204, 
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, 
                       detail="User not found")
 
 ## Functions
