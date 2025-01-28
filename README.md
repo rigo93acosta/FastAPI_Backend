@@ -43,3 +43,6 @@ Este proyecto es una aplicación web construida con FastAPI que proporciona vari
 
 - **type_hints.py**: Contiene ejemplos de uso de type hints en Python.
 - **static/**: Directorio para archivos estáticos, como imágenes.
+
+
+> Tomado de MoureDev: <https://www.youtube.com/watch?v=_y9qQZXE24A>
