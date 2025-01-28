@@ -62,7 +62,6 @@ async def login(form: OAuth2PasswordRequestForm = Depends()):
         raise HTTPException(status_code=400, detail="Incorrect username")
     
     user = search_user_db(form.username)
-    print(user)
     if not user.password == form.password:
         raise HTTPException(status_code=400, detail="Incorrect password")
     
