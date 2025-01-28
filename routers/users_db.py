@@ -1,7 +1,10 @@
+### Users DB API ###
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-user_router = APIRouter(tags=["users"],
+userDB = APIRouter(prefix="/userdb",
+                        tags=["usersdb"],
                          responses={404: {"description": "Not found"}})
 
 # Entidad User
@@ -27,48 +30,22 @@ users_list = [
         ]
 
 
-@user_router.get("/usersjson")
-async def usersjson():
-    return [
-        {"name": "Rigo", "surname": "Acosta", 
-         "url": "https://rigo93acosta.github.io", "age": 27},
-        {"name": "John", "surname": "Doe", 
-         "url": "https://www.johndoe.com", "age": 30},
-        {"name": "Jane", "surname": "Doe", 
-         "url": "https://www.janedoe.com", "age": 25},
-        {"name": "John", "surname": "Smith", 
-         "url": "https://www.johnsmith.com", "age": 35},
-        {"name": "Jane", "surname": "Smith", 
-         "url": "https://www.janesmith.com", "age": 40},
-    ]
-
-
-@user_router.get("/users")
+@userDB.get("/")
 async def users():
     return users_list
 
-# Path
-@user_router.get("/username/{name}")
-async def userByName(name: str):
-    return searchUserByName(name)
-
-# Query
-@user_router.get("/username/")
-async def userByName(name: str):
-    return searchUserByName(name)
-
 # Path        
-@user_router.get("/user/{user_id}")
+@userDB.get("/{user_id}")
 async def userById(user_id: int):
     return searchUserById(user_id)
 
 # Query
-@user_router.get("/user/")
+@userDB.get("/")
 async def userQuery(user_id: int):
     return searchUserById(user_id)
     
 
-@user_router.post("/user/", response_model=User, status_code=201)
+@userDB.post("/", response_model=User, status_code=201)
 async def createUser(user: User):
     if type(searchUserById(user.id)) == User:
         raise HTTPException(status_code=204, 
@@ -77,7 +54,7 @@ async def createUser(user: User):
         users_list.append(user)
     return user 
 
-@user_router.delete("/user/{user_id}")
+@userDB.delete("/{user_id}")
 async def deleteUser(user_id: int):
     user = searchUserById(user_id)
     if type(user) == User:
@@ -87,7 +64,7 @@ async def deleteUser(user_id: int):
         raise HTTPException(status_code=204, 
                       detail="User not found")
     
-@user_router.put("/user/")
+@userDB.put("/")
 async def updateUser(userNew: User):
     user = searchUserById(userNew.id)
     if type(user) == User:
