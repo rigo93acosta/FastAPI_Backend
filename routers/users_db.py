@@ -56,7 +56,19 @@ async def deleteUser(user_id: str):
 
 @userDB.put("/", response_model=User)
 async def updateUser(userNew: User):
-    ...
+    
+    try:
+            userTemp = dict(userNew)   
+            del userTemp["id"]
+
+            db_client.users.find_one_and_replace(
+            {"_id": ObjectId(userNew.id)},
+            userTemp
+            )
+    except:
+        return {"message": "User not found"}
+    
+    return searchUser("_id", ObjectId(userNew.id))
     
 
 def searchUser(field: str, key):
